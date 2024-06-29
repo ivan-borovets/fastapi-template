@@ -1,0 +1,52 @@
+services:
+  check_dotenv:
+    image: alpine
+    env_file:
+      - .env
+    volumes:
+      - ./scripts:/scripts
+    command: sh /scripts/DC_check_dotenv.sh
+
+  db_postgres:
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    container_name: ${POSTGRES_HOST}__pg
+    image: postgres:16-alpine
+    shm_size: 128mb
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ${PYPROJECT_TOML}
+        - ${POETRY_LOCK}
+        - ${UVICORN_PORT}
+      target: runtime
+      network: host
+    image: ${APP_NAME}:latest
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: "/app/${SRC_DIR}"
+    ports:
+      - "${UVICORN_PORT}:${UVICORN_PORT}"
+    volumes:
+      - ./${SRC_DIR}:/app/${SRC_DIR}
+      - ./${CONFIG_TOML}:/app/${CONFIG_TOML}
+    depends_on:
+      - db_postgres
+    command: [ "sh", "scripts/run_server.sh" ]
+
+volumes:
+  pgdata:
