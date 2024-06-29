@@ -1,0 +1,38 @@
+[docker-compose]
+APP_NAME = "web_app"
+COMPOSE_COMMAND = "docker compose"
+COMPOSE_FILE = "docker-compose.yaml"
+
+# No '/' after dir name !
+[structure]
+SRC_DIR = "src"
+TESTS_DIR = "tests"
+CONFIG_TOML = "config.toml"
+PYPROJECT_TOML = "pyproject.toml"
+POETRY_LOCK = "poetry.lock"
+
+[run]
+UVICORN_HOST = "0.0.0.0"
+UVICORN_PORT = 8000
+UVICORN_RELOAD = true
+
+[db.postgres]
+POSTGRES_USER = "postgres"
+POSTGRES_PASSWORD = "changethis"
+POSTGRES_DB = "web_app"
+POSTGRES_HOST = "db_postgres"  # Specify as in Docker network
+POSTGRES_PORT = 5432
+
+[db.sqlalchemy]
+SQLA_ECHO = false
+SQLA_ECHO_POOL = false
+SQLA_POOL_SIZE = 50
+SQLA_MAX_OVERFLOW = 10
+
+[api]
+API_PREFIX = "/api"
+
+[api.v1]
+API_V1_PREFIX = "/v1"
+API_V1_ITEMS_PREFIX = "/items"
+API_V1_ITEMS_TAGS = ["/items"]

@@ -1,0 +1,79 @@
+[tool.poetry]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.111.0"
+uvicorn = { extras = ["standard"], version = "^0.30.1" }
+pydantic = { extras = ["email"], version = "^2.7.4" }
+pydantic-settings = "^2.3.3"
+sqlalchemy = {extras = ["mypy"], version = "^2.0.31"}
+alembic = "^1.13.1"
+asyncpg = "^0.29.0"
+camelsnake = "^0.0.2"
+rtoml = "^0.11.0"
+passlib = "^1.7.4"
+bcrypt = "4.0.1"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^8.2.1"
+pytest-asyncio = "^0.23.7"
+coverage = "^7.5.4"
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.4.2"
+ruff = "^0.4.6"
+bandit = "^1.7.8"
+isort = "^5.13.2"
+pylint = "^3.2.2"
+mypy = "^1.10.0"
+pre-commit = "^3.7.1"
+
+[tool.bandit.assert_used]
+skips = ['*_test.py', '*/test_*.py']
+
+[tool.black]
+line-length = 88
+exclude = 'README\.md'
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "src/**/__init__.py"
+]
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+plugins = [
+    "pydantic.mypy",
+    "sqlalchemy.ext.mypy.plugin",
+]
+ignore_missing_imports = true
+
+[tool.pylint.main]
+disable = [
+    "C0111", # "missing-docstring"
+    "E1101", # "no-member"
+    "R0903", # "too-few-public-methods"
+    "R0913", # "too-many-arguments"
+    "R1705", # "no-else-return"
+    "R1711", # "useless-return"
+    "R1720", # "no-else-raise"
+    "W0613", # "unused-argument"
+]
+init-hook = 'import sys; sys.path.append("src")'
+max-line-length = 88
+
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:There is no current event loop:DeprecationWarning"
+]
+pythonpath = "src"

@@ -1,0 +1,71 @@
+services:
+  check_dotenv:
+    image: alpine
+    env_file:
+      - .env
+    volumes:
+      - ./scripts:/scripts
+    command: sh /scripts/docker-compose/check_dotenv.sh
+
+  db_postgres_test:
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    container_name: ${POSTGRES_HOST}__pg_TEST
+    image: postgres:16-alpine
+    shm_size: 128mb
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - pgtest_data:/var/lib/postgresql/data
+
+  db_postgres:
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+    container_name: ${POSTGRES_HOST}__pg
+    image: postgres:16-alpine
+    shm_size: 128mb
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  web_app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - ${PYPROJECT_TOML}
+        - ${POETRY_LOCK}
+        - ${UVICORN_PORT}
+      target: runtime
+      network: host
+    image: ${APP_NAME}:latest
+    env_file:
+      - .env
+    environment:
+      PYTHONPATH: "/app/${SRC_DIR}"
+    ports:
+      - "${UVICORN_PORT}:${UVICORN_PORT}"
+    volumes:
+      - ./${SRC_DIR}:/app/${SRC_DIR}
+      - ./${CONFIG_TOML}:/app/${CONFIG_TOML}
+      - ./.env:/app/.env
+    depends_on:
+      - db_postgres
+    command: [ "sh", "scripts/docker-compose/run_server.sh" ]
+
+volumes:
+  pgtest_data:
+  pgdata:
